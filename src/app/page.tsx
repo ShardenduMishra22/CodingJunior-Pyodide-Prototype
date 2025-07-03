@@ -10,6 +10,8 @@ const Page = () => {
   const [pyodide, setPyodide] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState('python');
+  const [packageName, setPackageName] = useState('');
+  const [installing, setInstalling] = useState(false);
 
   // Load Pyodide on mount
   useEffect(() => {
@@ -52,10 +54,46 @@ const Page = () => {
     }
   };
 
+  // Handler for installing a package via micropip
+  const installPackage = async () => {
+    if (!pyodide || !packageName.trim()) return;
+    setInstalling(true);
+    setOutput('');
+    try {
+      // @ts-expect-error: loadPackage is not typed on the pyodide object
+      await pyodide.loadPackage('micropip');
+      // @ts-expect-error: runPythonAsync is not typed on the pyodide object
+      await pyodide.runPythonAsync(`import micropip`);
+      // @ts-expect-error: runPythonAsync is not typed on the pyodide object
+      await pyodide.runPythonAsync(`await micropip.install('${packageName.trim()}')`);
+      setOutput(`Successfully installed: ${packageName.trim()}`);
+    } catch (err: unknown) {
+      setOutput(`Install error: ${String(err)}`);
+    }
+    setInstalling(false);
+  };
+
   return (
     <div className="flex h-screen">
       <div className="w-1/2 border-r flex flex-col">
         <MonacoEditor value={value} setValue={setValue} lang={lang} setLang={setLang} />
+        <div className="flex items-center gap-2 m-4">
+          <input
+            type="text"
+            className="border px-2 py-1 rounded flex-1"
+            placeholder="Install Python package (e.g. numpy)"
+            value={packageName}
+            onChange={e => setPackageName(e.target.value)}
+            disabled={loading || installing}
+          />
+          <button
+            className="px-3 py-1 bg-green-600 text-white rounded disabled:opacity-50"
+            onClick={installPackage}
+            disabled={loading || installing || !packageName.trim()}
+          >
+            {installing ? 'Installing...' : 'Install'}
+          </button>
+        </div>
         <button
           className="m-4 px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
           onClick={runCode}
