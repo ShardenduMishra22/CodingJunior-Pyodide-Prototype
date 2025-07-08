@@ -1,3 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-expressions */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable no-unused-vars */
+
 export default function initTurtle() {
   'use strict';
 /**
